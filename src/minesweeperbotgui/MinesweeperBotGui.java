@@ -17,6 +17,7 @@ import bot.BotTile;
 import bot.GameState;
 import bot.MinesweeperBotDriver;
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
@@ -26,6 +27,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.awt.event.ActionEvent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.JLabel;
@@ -37,14 +39,15 @@ public class MinesweeperBotGui {
     private Timer tmr;
     private int counter = 0;
     private Queue<String[][]> streams = new LinkedList<>();
-    private JButton btnRunSimulation;
-    private JLabel[][] grid;
-    private JButton btnStepbystepBot;
+    JButton btnRunSimulation;
+    JLabel[][] grid;
+    JButton btnStepbystepBot;
     public boolean initialized = false;
     private JLabel lblBotWon;
-    private Dimension frameSize;
-    private JPanel scrollPanel;
+    Dimension scrollPaneSize;
     private JScrollPane scrollPane;
+    private JPanel scrollPanePanel;
+
 
     /**
      * Launch the application.
@@ -71,18 +74,16 @@ public class MinesweeperBotGui {
         initialize();
     }
 
-    public void createTimer() {
+    public void createTimer(JScrollPane pane) {
         btnRunSimulation.setEnabled(false);
-        tmr = new Timer(25, new ActionListener() {
+        tmr = new Timer(150, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 botbg.botStep();
 
-
-
                 if (!botbg.streamIsEmpty()) {
-
-                    populateJLabels(botbg.bot.width, botbg.bot.height, botbg.getNextStream());
+                    
+                    populateJLabels(pane,botbg.bot.width, botbg.bot.height, botbg.getNextStream());
 
                 } else {
                     tmr.stop();
@@ -92,21 +93,21 @@ public class MinesweeperBotGui {
 
 
                 if (botbg.getState() == GameState.lose) {
-                    lblBotWon = new JLabel("Bot Lost! :(");
-                    lblBotWon.setBounds(59, 749, 69, 20);
-                    scrollPanel.add(lblBotWon);
-                    frame.revalidate();
-                    frame.repaint();
+                	JOptionPane.showMessageDialog(frame, "Game Over, You Lost :(" , "The Bot Hit a Mine!", JOptionPane.INFORMATION_MESSAGE);
+                    scrollPane.revalidate();
+                    scrollPane.repaint();
+                    pane.revalidate();
+                    pane.repaint();
 
                     btnRunSimulation.setEnabled(true);
                     btnStepbystepBot.setEnabled(true);
 
                 } else if (botbg.getState() == GameState.win) {
-                    lblBotWon = new JLabel("Bot Won!");
-                    lblBotWon.setBounds(59, 749, 69, 20);
-                    scrollPanel.add(lblBotWon);
-                    frame.revalidate();
-                    frame.repaint();
+                	JOptionPane.showMessageDialog(frame, "Game Over, You Won!" , "The Bot Won solved this Board (" + botbg.bot.height + " x " + botbg.bot.width + " tiles) ", JOptionPane.INFORMATION_MESSAGE);
+                    scrollPane.revalidate();
+                    scrollPane.repaint();
+                    pane.revalidate();
+                    pane.repaint();
 
                     btnRunSimulation.setEnabled(true);
                     btnStepbystepBot.setEnabled(true);
@@ -129,21 +130,15 @@ public class MinesweeperBotGui {
             e1.printStackTrace();
         }
         frame = new JFrame();
-        scrollPanel = new JPanel();
-        scrollPane = new JScrollPane();
         frame.setSize(1033, 1035);
-        scrollPane.setSize(1033,1033);
-        scrollPanel.setSize(1033,1035);
-        scrollPanel.setLayout(null);
-        scrollPane.setLayout(null);
-        
-        frameSize = frame.getSize();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(null);
-        scrollPane.add(scrollPanel);
+        scrollPane = new JScrollPane();
+        scrollPane.setBounds(0, 0, 1011, 979);
+        scrollPaneSize = scrollPane.getSize();
+        scrollPane.setLayout(null);
         frame.getContentPane().add(scrollPane);
-       
-       
+        
         btnRunSimulation = new JButton("Run Simulation");
 
         btnRunSimulation.addActionListener(new ActionListener() {
@@ -153,14 +148,14 @@ public class MinesweeperBotGui {
                 botbg = new MinesweeperBotBackground();
                 btnRunSimulation.setEnabled(true);
                 initialized = false;
-                createTimer();
-                tmr.start();
+                createTimer(scrollPane);
+                tmr.start();  
+               
             }
-            
         });
         btnRunSimulation.setBounds(15, 16, 156, 42);
         
-        scrollPanel.add(btnRunSimulation);
+        scrollPane.add(btnRunSimulation);
         btnStepbystepBot = new JButton("Step-By-Step Bot");
         btnStepbystepBot.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -170,20 +165,21 @@ public class MinesweeperBotGui {
             }
         });
         btnStepbystepBot.setBounds(217, 16, 156, 42);
-        scrollPanel.add(btnStepbystepBot);
+        scrollPane.add(btnStepbystepBot);
         
         JButton btnStep = new JButton(">>");
         btnStep.setBounds(385, 23, 61, 29);
-        scrollPanel.add(btnStep);
+        scrollPane.add(btnStep);
+        
+        
         btnStep.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 botbg.botStep();
 
-
+                
 
                 if (!botbg.streamIsEmpty()) {
-
-                    populateJLabels(botbg.bot.width, botbg.bot.height, botbg.getNextStream());
+                    populateJLabels(scrollPane,botbg.bot.width, botbg.bot.height, botbg.getNextStream());
 
                 } else {
                    // tmr.stop();
@@ -193,21 +189,17 @@ public class MinesweeperBotGui {
 
 
                 if (botbg.getState() == GameState.lose) {
-                    lblBotWon = new JLabel("Bot Lost! :(");
-                    lblBotWon.setBounds(59, 749, 69, 20);
-                    scrollPanel.add(lblBotWon);
-                    scrollPanel.revalidate();
-                    scrollPanel.repaint();
+                	JOptionPane.showMessageDialog(frame, "The Bot Hit a Mine", "Game Over!" ,  JOptionPane.INFORMATION_MESSAGE);
+                    scrollPane.revalidate();
+                    scrollPane.repaint();
 
                     btnRunSimulation.setEnabled(true);
                     btnStepbystepBot.setEnabled(true);
 
                 } else if (botbg.getState() == GameState.win) {
-                    lblBotWon = new JLabel("Bot Won!");
-                    lblBotWon.setBounds(59, 749, 69, 20);
-                    scrollPanel.add(lblBotWon);
-                    scrollPanel.revalidate();
-                    scrollPanel.repaint();
+                	JOptionPane.showMessageDialog(frame, "The Bot Won solved this Board (" + botbg.bot.height + " x " + botbg.bot.width + " tiles) ", "Game Over, You Won!"  , JOptionPane.INFORMATION_MESSAGE);
+                    scrollPane.revalidate();
+                    scrollPane.repaint();
 
                     btnRunSimulation.setEnabled(true);
                     btnStepbystepBot.setEnabled(true);
@@ -222,26 +214,26 @@ public class MinesweeperBotGui {
 
     }
 
-    public void populateJLabels(int width, int height, String[][] board) {
+    private void populateJLabels(JScrollPane pane,int width, int height, String[][] board) {
         int x = 0;
         int y = 100;
-        int labelSize = 55;
-        //int labelSize = calculateLabelHeight() < calculateLabelWidth() ? calculateLabelHeight() : calculateLabelWidth();
+        int labelSize = 35;
         
         grid = new JLabel[height][width];
 
         if (initialized) {
             for (int i = 0; i < height; i++) {
                 for (int j = 0; j < width; j++) {
-                    Component[] a = scrollPanel.getComponents();
+                    Component[] a = pane.getComponents();
                     for (Component b : a) {
                         if (b instanceof JLabel) {
-                            scrollPanel.remove(b);
+                            pane.remove(b);
                         }
                     }
                 }
             }
-        } else {
+        } 
+        else {
             initialized = true;
         }
         for (int i = 0; i < height; i++) {
@@ -330,12 +322,11 @@ public class MinesweeperBotGui {
                 String toolTipText = generateToolTipTextForBotTile(tile);
                 label.setToolTipText(toolTipText);
                 label.setText(labelString);
-                label.setBounds(x, y, labelSize, labelSize); 
+                label.setBounds(x, y, labelSize, labelSize); // 40,40
                 label.setHorizontalAlignment(SwingConstants.CENTER);
                 label.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
                 grid[i][j] = label;
-                
-                scrollPanel.add(label);
+                pane.add(label);
                 x += labelSize +(labelSize*0.375);
                 
             }
@@ -343,14 +334,14 @@ public class MinesweeperBotGui {
             y += labelSize + (labelSize*0.375);
 
         }
-        scrollPanel.revalidate();
-        scrollPanel.repaint();
+        pane.revalidate();
+        pane.repaint();
     }
 
     
 
     private int calculateLabelHeight() {
-        int height = (int) (frameSize.getHeight()-200);
+        int height = (int) (scrollPaneSize.getHeight()-300);
         int verticalTiles = botbg.bot.height;
         height = (height - (verticalTiles * 10))/verticalTiles;
         return height;
@@ -358,7 +349,7 @@ public class MinesweeperBotGui {
         
     }
     private int calculateLabelWidth() {
-        int width = (int) (frameSize.getWidth());
+        int width = (int) (scrollPaneSize.getWidth());
         int horizontalTiles = botbg.bot.width;
         width = (width - (horizontalTiles * 10))/horizontalTiles;
         return width;

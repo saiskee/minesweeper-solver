@@ -8,7 +8,7 @@ public class MinesweeperBotBackground {
       public MinesweeperBot bot;
       
       public MinesweeperBotBackground() {
-          bot = new MinesweeperBot(15,15,35);
+          bot = new MinesweeperBot(45,25,75);
           bot.setGuiDiagnostics(true);
           //bot.setDiagnostics(true);
       }
